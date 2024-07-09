@@ -26,7 +26,7 @@ class _SplashscreenState extends State<Splashscreen> {
   Future<void> _checkPinSet() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? pin = prefs.getString('pin');
-    bool isPinSet = pin != null && pin.isNotEmpty;
+    bool isPinSet = pin != null && pin.isNotEmpty; 
 
     await Future.delayed(const Duration(seconds: 3));
 
