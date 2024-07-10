@@ -26,7 +26,7 @@ class _SplashscreenState extends State<Splashscreen> {
   Future<void> _checkPinSet() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? pin = prefs.getString('pin');
-    bool isPinSet = pin != null && pin.isNotEmpty; 
+    bool isPinSet = pin != null && pin.isNotEmpty;
 
     await Future.delayed(const Duration(seconds: 3));
 
@@ -49,12 +49,28 @@ class _SplashscreenState extends State<Splashscreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: green,
       body: Center(
-          child: Text(
-        "SplashScreen",
-        style: TextStyle(
-            fontSize: 20.sp, fontWeight: FontWeight.bold, color: white),
+          child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.visibility_off,
+            size: 3.h,
+          ),
+          SizedBox(
+            width: 2.w,
+          ),
+          SizedBox(child: Container(color: black, height: 3.5.h, width: 0.5.w)),
+          SizedBox(
+            width: 2.w,
+          ),
+          Text(
+            "HideMe",
+            style: TextStyle(
+                fontSize: 15.sp, fontWeight: FontWeight.bold, color: black),
+          ),
+        ],
       )),
     );
   }

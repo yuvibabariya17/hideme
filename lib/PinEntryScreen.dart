@@ -132,7 +132,29 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Authentication App'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.visibility_off,
+              size: 3.h,
+            ),
+            SizedBox(
+              width: 2.w,
+            ),
+            SizedBox(
+                child: Container(color: black, height: 3.5.h, width: 0.5.w)),
+            SizedBox(
+              width: 2.w,
+            ),
+            Text(
+              "HideMe",
+              style: TextStyle(
+                  fontSize: 15.sp, fontWeight: FontWeight.bold, color: black),
+            ),
+          ],
+        ),
         automaticallyImplyLeading: false,
       ),
       body: Padding(
@@ -167,5 +189,6 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
         ),
       ),
     );
+ 
   }
 }
