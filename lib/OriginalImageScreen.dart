@@ -13,7 +13,7 @@ class OriginalImageScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Original Image"),
+        title: const Text("Original Image"),
       ),
       body: Center(
         child: Image.file(File(originalFilePath)),
