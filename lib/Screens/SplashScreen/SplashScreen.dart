@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:hideme/Constant/color_const.dart';
-import 'package:hideme/PinEntryScreen.dart';
-import 'package:hideme/PinSetupScreen.dart';
+import 'package:hideme/Screens/AuthPin/PinEntryScreen.dart';
+import 'package:hideme/Screens/AuthPin/PinSetupScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 

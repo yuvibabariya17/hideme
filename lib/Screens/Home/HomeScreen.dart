@@ -1,13 +1,12 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hideme/HiddenFilesScreen.dart';
+import 'package:hideme/Models/FileModel.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sizer/sizer.dart';
 import 'package:file_picker/file_picker.dart';
 
 const String kFilesBox = 'files';
-const String kFileSuffix = '.hideme';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({Key? key}) : super(key: key);
@@ -17,7 +16,8 @@ class Homescreen extends StatefulWidget {
 }
 
 class _HomescreenState extends State<Homescreen> {
-  late Box<String> filesBox;
+  // late Box<Map<String, String>> filesBox;
+  late Box<FileModel> filesBox;
   List<String> uploadedFiles = [];
 
   @override
@@ -26,20 +26,28 @@ class _HomescreenState extends State<Homescreen> {
     openBox();
   }
 
-  Future<void> openBox() async {
-    await Hive.initFlutter();
-    filesBox = await Hive.openBox<String>(kFilesBox);
+  @override
+  void dispose() {
     if (filesBox.isOpen) {
-      setState(() {
-        uploadedFiles = filesBox.values.toList();
-      });
+      filesBox.close();
     }
+    Hive.close();
+    super.dispose();
   }
 
-  List<String> getHiddenFiles() {
-    return uploadedFiles
-        .where((filePath) => filePath.endsWith(kFileSuffix))
-        .toList();
+  Future<void> openBox() async {
+    await Hive.initFlutter();
+    filesBox = await Hive.openBox<FileModel>(kFilesBox);
+    // filesBox = await Hive.openBox<Map<String, String>>(kFilesBox);
+    if (filesBox.isOpen) {
+      // Assuming 'filesBox' is a Box<FileModel>
+      List<FileModel> fileModels = filesBox.values.toList();
+      List<String> uploadedFileNames =
+          fileModels.map((model) => model.anonymizedName).toList();
+      setState(() {
+        uploadedFiles = uploadedFileNames;
+      });
+    }
   }
 
   @override
@@ -97,20 +105,59 @@ class _HomescreenState extends State<Homescreen> {
                         if (result != null) {
                           List<File> pickedFiles =
                               result.paths.map((path) => File(path!)).toList();
+                          int index = filesBox.keys.length;
                           for (File file in pickedFiles) {
+                            String originalPath = file.path;
                             String fileName =
-                                '${file.path.split('/').last}$kFileSuffix';
-                            if (filesBox.isOpen) {
-                              filesBox.add(fileName);
-                            }
+                                'hideme${index + 1}.jpg'; // Anonymized name
+                            FileModel fileModel = FileModel(
+                              originalPath: originalPath,
+                              anonymizedName: fileName,
+                            );
+                            filesBox.put(fileName,
+                                fileModel); // Store FileModel instance
+                            index++;
                           }
                           setState(() {
-                            uploadedFiles = filesBox.values.toList();
+                            uploadedFiles = filesBox.values
+                                .map((model) => model.anonymizedName)
+                                .toList();
                           });
                         }
                       },
                       child: const Text("Browse the Files"),
                     ),
+
+                    // ElevatedButton(
+                    //   onPressed: () async {
+                    //     FilePickerResult? result =
+                    //         await FilePicker.platform.pickFiles(
+                    //       type: FileType.any,
+                    //       allowMultiple: true,
+                    //     );
+                    //     if (result != null) {
+                    //       List<File> pickedFiles =
+                    //           result.paths.map((path) => File(path!)).toList();
+                    //       int index = filesBox.keys.length;
+                    //       for (File file in pickedFiles) {
+                    //         String originalPath = file.path;
+                    //         String fileName =
+                    //             'hideme${index + 1}.jpg'; // Anonymized name
+                    //         filesBox.put(fileName, {
+                    //           'originalPath': originalPath,
+                    //           'anonymizedName': fileName
+                    //         });
+                    //         index++;
+                    //       }
+                    //       setState(() {
+                    //         uploadedFiles = filesBox.values
+                    //             .map((entry) => entry['anonymizedName']!)
+                    //             .toList();
+                    //       });
+                    //     }
+                    //   },
+                    //   child: const Text("Browse the Files"),
+                    // ),
                     SizedBox(height: 2.h),
                     GestureDetector(
                       onTap: () {
@@ -118,7 +165,9 @@ class _HomescreenState extends State<Homescreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => HiddenFilesScreen(
-                                hiddenFiles: getHiddenFiles()),
+                              hiddenFiles: uploadedFiles,
+                              filesBox: filesBox,
+                            ),
                           ),
                         );
                       },
@@ -140,33 +189,6 @@ class _HomescreenState extends State<Homescreen> {
                         ),
                       ),
                     ),
-
-                    // Column(
-                    //   children: uploadedFiles.map((filePath) {
-                    //     // Display files with .hideme suffix
-                    //     if (filePath.endsWith(kFileSuffix)) {
-                    //       String fileName = filePath.substring(
-                    //           0, filePath.length - kFileSuffix.length);
-                    //       return Container(
-                    //         height: 7.h,
-                    //         width: 40.w,
-                    //         decoration: BoxDecoration(
-                    //           borderRadius: BorderRadius.circular(20),
-                    //           color: Colors.white,
-                    //         ),
-                    //         child: Center(
-                    //           child: Text(
-                    //             fileName,
-                    //             maxLines: 1,
-                    //             overflow: TextOverflow.ellipsis,
-                    //           ),
-                    //         ),
-                    //       );
-                    //     } else {
-                    //       return SizedBox.shrink(); // Skip non-.hideme files
-                    //     }
-                    //   }).toList(),
-                    // ),
                   ],
                 ),
               ),
@@ -175,14 +197,5 @@ class _HomescreenState extends State<Homescreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    if (filesBox.isOpen) {
-      filesBox.close();
-    }
-    Hive.close();
-    super.dispose();
   }
 }

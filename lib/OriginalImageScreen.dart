@@ -9,15 +9,41 @@ class OriginalImageScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String originalFilePath = filePath.substring(0, filePath.length);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Original Image"),
       ),
       body: Center(
-        child: Image.file(File(originalFilePath)),
+        child: FutureBuilder<File?>(
+          future: _getImageFile(filePath),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error loading image: ${snapshot.error}');
+            } else if (snapshot.hasData && snapshot.data != null) {
+              return Image.file(snapshot.data!);
+            } else {
+              return const Text('Image not found');
+            }
+          },
+        ),
       ),
     );
+  }
+
+  Future<File?> _getImageFile(String path) async {
+    try {
+      File file = File(path);
+      if (await file.exists()) {
+        return file;
+      } else {
+        print("File does not exist: $path");
+        return null;
+      }
+    } catch (e) {
+      print("Error loading image: $e");
+      return null;
+    }
   }
 }
