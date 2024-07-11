@@ -105,19 +105,34 @@ class _HomescreenState extends State<Homescreen> {
                         if (result != null) {
                           List<File> pickedFiles =
                               result.paths.map((path) => File(path!)).toList();
-                          int index = filesBox.keys.length;
+                          int index = filesBox.keys.length + 1;
                           for (File file in pickedFiles) {
                             String originalPath = file.path;
-                            String fileName =
-                                'hideme${index + 1}.jpg'; // Anonymized name
+                            String fileName;
+                            do {
+                              fileName = 'hideme${index}.jpg';
+                              index++;
+                            } while (filesBox
+                                .containsKey(fileName)); // Ensure unique key
                             FileModel fileModel = FileModel(
                               originalPath: originalPath,
                               anonymizedName: fileName,
                             );
                             filesBox.put(fileName,
                                 fileModel); // Store FileModel instance
-                            index++;
                           }
+                          // for (File file in pickedFiles) {
+                          //   String originalPath = file.path;
+                          //   String fileName =
+                          //       'hideme${index + 1}.jpg'; // Anonymized name
+                          //   FileModel fileModel = FileModel(
+                          //     originalPath: originalPath,
+                          //     anonymizedName: fileName,
+                          //   );
+                          //   filesBox.put(fileName,
+                          //       fileModel); // Store FileModel instance
+                          //   index++;
+                          // }
                           setState(() {
                             uploadedFiles = filesBox.values
                                 .map((model) => model.anonymizedName)

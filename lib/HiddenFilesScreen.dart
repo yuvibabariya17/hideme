@@ -7,9 +7,9 @@ import 'package:sizer/sizer.dart';
 class HiddenFilesScreen extends StatefulWidget {
   final List<String> hiddenFiles;
   //final Box<Map<String, String>> filesBox;
-  Box<FileModel>? filesBox;
+  final Box<FileModel>? filesBox;
 
-   HiddenFilesScreen({
+  const HiddenFilesScreen({
     super.key,
     required this.hiddenFiles,
     required this.filesBox,
@@ -28,16 +28,16 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
     _hiddenFiles = List.from(widget.hiddenFiles);
   }
 
-  // Future<void> deleteFileFromDatabase(String fileName) async {
-  //   try {
-  //     await widget.filesBox.delete(fileName); // Remove from Hive database
-  //     setState(() {
-  //       _hiddenFiles.remove(fileName); // Remove from local list
-  //     });
-  //   } catch (e) {
-  //     print('Error deleting file: $e');
-  //   }
-  // }
+  Future<void> deleteFileFromDatabase(String fileName) async {
+    try {
+      await widget.filesBox!.delete(fileName); // Remove from Hive database
+      setState(() {
+        _hiddenFiles.remove(fileName); // Remove from local list
+      });
+    } catch (e) {
+      print('Error deleting file: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +55,16 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
               key: Key(fileName),
               direction: DismissDirection.endToStart,
               onDismissed: (direction) {
-                // deleteFileFromDatabase(fileName);
+                deleteFileFromDatabase(fileName);
+                setState(() {});
               },
               background: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: Colors.red,
+                ),
                 alignment: Alignment.centerRight,
-                padding: const EdgeInsets.only(right: 20),
-                color: Colors.red,
                 child: const Icon(Icons.delete, color: Colors.white),
               ),
               child: GestureDetector(
@@ -76,17 +80,24 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
                     ),
                   );
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.black,
-                  ),
-                  margin: EdgeInsets.only(top: 1.h, bottom: 1.h),
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.5.h),
-                  child: Text(
-                    fileName,
-                    style: const TextStyle(color: Colors.white),
+                child: Center(
+                  child: Container(
+                    height: 6.5.h,
+                    width: SizerUtil.width / 2,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.black,
+                    ),
+                    margin: EdgeInsets.only(
+                        left: 7.w, right: 7.w, top: 1.h, bottom: 1.h),
+                    // padding: EdgeInsets.only(
+                    //     left: 5.w, right: 5.w, top: 2.h, bottom: 2.h),
+                    child: Center(
+                      child: Text(
+                        fileName,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
                   ),
                 ),
               ),
