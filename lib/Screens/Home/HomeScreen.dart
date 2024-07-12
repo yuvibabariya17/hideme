@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hideme/HiddenFilesScreen.dart';
 import 'package:hideme/Models/FileModel.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -95,8 +96,8 @@ class _HomescreenState extends State<Homescreen> {
                 ),
                 child: Column(
                   children: [
-                    ElevatedButton(
-                      onPressed: () async {
+                    GestureDetector(
+                      onTap: () async {
                         FilePickerResult? result =
                             await FilePicker.platform.pickFiles(
                           type: FileType.any,
@@ -118,8 +119,15 @@ class _HomescreenState extends State<Homescreen> {
                               originalPath: originalPath,
                               anonymizedName: fileName,
                             );
-                            filesBox.put(fileName,
-                                fileModel); // Store FileModel instance
+                            filesBox.put(fileName, fileModel);
+                            Fluttertoast.showToast(
+                              msg: "Files uploaded successfully",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.black,
+                              textColor: Colors.white,
+                              fontSize: 16.0,
+                            ); // Store FileModel instance
                           }
                           // for (File file in pickedFiles) {
                           //   String originalPath = file.path;
@@ -140,7 +148,22 @@ class _HomescreenState extends State<Homescreen> {
                           });
                         }
                       },
-                      child: const Text("Browse the Files"),
+                      child: Container(
+                        height: 7.h,
+                        width: 40.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.white,
+                        ),
+                        child: const Center(
+                          child: Text(
+                            "Browse the Files",
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                            maxLines: 1,
+                            overflow: TextOverflow.visible,
+                          ),
+                        ),
+                      ),
                     ),
 
                     // ElevatedButton(
@@ -153,26 +176,44 @@ class _HomescreenState extends State<Homescreen> {
                     //     if (result != null) {
                     //       List<File> pickedFiles =
                     //           result.paths.map((path) => File(path!)).toList();
-                    //       int index = filesBox.keys.length;
+                    //       int index = filesBox.keys.length + 1;
                     //       for (File file in pickedFiles) {
                     //         String originalPath = file.path;
-                    //         String fileName =
-                    //             'hideme${index + 1}.jpg'; // Anonymized name
-                    //         filesBox.put(fileName, {
-                    //           'originalPath': originalPath,
-                    //           'anonymizedName': fileName
-                    //         });
-                    //         index++;
+                    //         String fileName;
+                    //         do {
+                    //           fileName = 'hideme${index}.jpg';
+                    //           index++;
+                    //         } while (filesBox
+                    //             .containsKey(fileName)); // Ensure unique key
+                    //         FileModel fileModel = FileModel(
+                    //           originalPath: originalPath,
+                    //           anonymizedName: fileName,
+                    //         );
+                    //         filesBox.put(fileName,
+                    //             fileModel); // Store FileModel instance
                     //       }
+                    //       // for (File file in pickedFiles) {
+                    //       //   String originalPath = file.path;
+                    //       //   String fileName =
+                    //       //       'hideme${index + 1}.jpg'; // Anonymized name
+                    //       //   FileModel fileModel = FileModel(
+                    //       //     originalPath: originalPath,
+                    //       //     anonymizedName: fileName,
+                    //       //   );
+                    //       //   filesBox.put(fileName,
+                    //       //       fileModel); // Store FileModel instance
+                    //       //   index++;
+                    //       // }
                     //       setState(() {
                     //         uploadedFiles = filesBox.values
-                    //             .map((entry) => entry['anonymizedName']!)
+                    //             .map((model) => model.anonymizedName)
                     //             .toList();
                     //       });
                     //     }
                     //   },
                     //   child: const Text("Browse the Files"),
                     // ),
+
                     SizedBox(height: 2.h),
                     GestureDetector(
                       onTap: () {
@@ -193,13 +234,12 @@ class _HomescreenState extends State<Homescreen> {
                           borderRadius: BorderRadius.circular(20),
                           color: Colors.white,
                         ),
-                        child: GestureDetector(
-                          child: const Center(
-                            child: Text(
-                              "View Hidden Files",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                        child: const Center(
+                          child: Text(
+                            "View Hidden Files",
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                            maxLines: 1,
+                            overflow: TextOverflow.visible,
                           ),
                         ),
                       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hideme/Models/FileModel.dart';
 import 'package:hideme/OriginalImageScreen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -30,14 +31,38 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
 
   Future<void> deleteFileFromDatabase(String fileName) async {
     try {
-      await widget.filesBox!.delete(fileName); // Remove from Hive database
+      // Remove from Hive database
+      await widget.filesBox!.delete(fileName);
+
+      // Update local list immediately
       setState(() {
-        _hiddenFiles.remove(fileName); // Remove from local list
+        _hiddenFiles.remove(fileName);
       });
+
+      // Show toast message
+      Fluttertoast.showToast(
+        msg: "File deleted successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      print("File '$fileName' deleted from database.");
     } catch (e) {
       print('Error deleting file: $e');
     }
   }
+  // Future<void> deleteFileFromDatabase(String fileName) async {
+  //   try {
+  //     await widget.filesBox!.delete(fileName); // Remove from Hive database
+  //     setState(() {
+  //       _hiddenFiles.remove(fileName); // Remove from local list
+  //     });
+  //   } catch (e) {
+  //     print('Error deleting file: $e');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -47,63 +72,77 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
       ),
       body: Container(
         margin: EdgeInsets.only(left: 7.w, right: 7.w, top: 3.h),
-        child: ListView.builder(
-          itemCount: _hiddenFiles.length,
-          itemBuilder: (context, index) {
-            String fileName = _hiddenFiles[index];
-            return Dismissible(
-              key: Key(fileName),
-              direction: DismissDirection.endToStart,
-              onDismissed: (direction) {
-                deleteFileFromDatabase(fileName);
-                setState(() {});
-              },
-              background: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  color: Colors.red,
+        child: _hiddenFiles.isEmpty
+            ? const Center(
+                child: Text(
+                  "You don't have any data",
+                  style: TextStyle(fontSize: 20.0),
                 ),
-                alignment: Alignment.centerRight,
-                child: const Icon(Icons.delete, color: Colors.white),
-              ),
-              child: GestureDetector(
-                onTap: () {
-                  String originalPath =
-                      widget.filesBox!.get(fileName)!.originalPath;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OriginalImageScreen(
-                        filePath: originalPath,
+              )
+            : ListView.builder(
+                itemCount: _hiddenFiles.length,
+                itemBuilder: (context, index) {
+                  String fileName = _hiddenFiles[index];
+                  return Dismissible(
+                    key: Key(fileName),
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (direction) {
+                      deleteFileFromDatabase(fileName);
+                      // Fluttertoast.showToast(
+                      //   msg: "Files Deleted successfully",
+                      //   toastLength: Toast.LENGTH_SHORT,
+                      //   gravity: ToastGravity.BOTTOM,
+                      //   backgroundColor: Colors.black,
+                      //   textColor: Colors.white,
+                      //   fontSize: 16.0,
+                      // );
+                    },
+                    background: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        color: Colors.red,
+                      ),
+                      alignment: Alignment.centerRight,
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    child: GestureDetector(
+                      onTap: () {
+                        String originalPath =
+                            widget.filesBox!.get(fileName)!.originalPath;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OriginalImageScreen(
+                              filePath: originalPath,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 6.5.h,
+                          width: SizerUtil.width / 2,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.black,
+                          ),
+                          margin: EdgeInsets.only(
+                              left: 7.w, right: 7.w, top: 1.h, bottom: 1.h),
+                          // padding: EdgeInsets.only(
+                          //     left: 5.w, right: 5.w, top: 2.h, bottom: 2.h),
+                          child: Center(
+                            child: Text(
+                              fileName,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   );
                 },
-                child: Center(
-                  child: Container(
-                    height: 6.5.h,
-                    width: SizerUtil.width / 2,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.black,
-                    ),
-                    margin: EdgeInsets.only(
-                        left: 7.w, right: 7.w, top: 1.h, bottom: 1.h),
-                    // padding: EdgeInsets.only(
-                    //     left: 5.w, right: 5.w, top: 2.h, bottom: 2.h),
-                    child: Center(
-                      child: Text(
-                        fileName,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
               ),
-            );
-          },
-        ),
       ),
     );
   }

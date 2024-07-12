@@ -51,6 +51,7 @@ class _UploadedFilesScreenState extends State<UploadedFilesScreen> {
                       0, filePath.length - kFileSuffix.length);
                   return GestureDetector(
                     onTap: () {
+                      
                       // Navigator.push(
                       //   context,
                       //   MaterialPageRoute(
