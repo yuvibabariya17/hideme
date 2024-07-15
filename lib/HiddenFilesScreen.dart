@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hideme/Models/FileModel.dart';
@@ -31,6 +32,9 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
 
   Future<void> deleteFileFromDatabase(String fileName) async {
     try {
+      if (!_hiddenFiles.contains(fileName)) {
+        return; // File not found in list
+      }
       // Remove from Hive database
       await widget.filesBox!.delete(fileName);
 
@@ -86,6 +90,30 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
                   return Dismissible(
                     key: Key(fileName),
                     direction: DismissDirection.endToStart,
+                    confirmDismiss: (direction) async {
+                      // Show confirmation dialog
+                      return await showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return CupertinoAlertDialog(
+                            title: const Text("Confirm"),
+                            content: Text("Delete $fileName?"),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: const Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: const Text("Delete"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
                     onDismissed: (direction) {
                       deleteFileFromDatabase(fileName);
                       // Fluttertoast.showToast(

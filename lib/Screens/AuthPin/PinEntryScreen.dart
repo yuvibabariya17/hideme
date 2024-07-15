@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
@@ -51,7 +52,7 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
+        return CupertinoAlertDialog(
           title: const Text('Error'),
           content: Text(message),
           actions: <Widget>[
@@ -189,6 +190,5 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
         ),
       ),
     );
- 
   }
 }
