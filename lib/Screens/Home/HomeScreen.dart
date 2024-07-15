@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hideme/Constant/color_const.dart';
 import 'package:hideme/HiddenFilesScreen.dart';
 import 'package:hideme/Models/FileModel.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -10,14 +12,14 @@ import 'package:file_picker/file_picker.dart';
 const String kFilesBox = 'files';
 
 class Homescreen extends StatefulWidget {
-  const Homescreen({Key? key}) : super(key: key);
+  const Homescreen({super.key});
 
   @override
   State<Homescreen> createState() => _HomescreenState();
 }
 
 class _HomescreenState extends State<Homescreen> {
-  // late Box<Map<String, String>> filesBox;
+  // late Box<Map<String, String>> filesBox;  
   late Box<FileModel> filesBox;
   List<String> uploadedFiles = [];
 
@@ -55,202 +57,163 @@ class _HomescreenState extends State<Homescreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.visibility_off,
-              size: 3.h,
-            ),
-            SizedBox(width: 2.w),
-            SizedBox(
-              child:
-                  Container(color: Colors.black, height: 3.5.h, width: 0.5.w),
-            ),
-            SizedBox(width: 2.w),
-            Text(
-              "HideMe",
-              style: TextStyle(
-                fontSize: 15.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+        backgroundColor: black,
+        title: FadeInLeft(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.visibility_off,
+                size: 2.8.h,
+                color: white,
               ),
-            ),
-          ],
-        ),
-        automaticallyImplyLeading: false, 
-
-        
-      ),
-      body: Container(
-        margin: EdgeInsets.symmetric(horizontal: 5.w, vertical: 10.h),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Center(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Colors.black,
+              SizedBox(width: 2.w),
+              SizedBox(
+                child:
+                    Container(color: Colors.white, height: 3.5.h, width: 0.5.w),
+              ),
+              SizedBox(width: 2.w),
+              Text(
+                "HideMe App",
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                child: Column(
-                  children: [
-                    GestureDetector(
-                      onTap: () async {
-                        FilePickerResult? result =
-                            await FilePicker.platform.pickFiles(
-                          type: FileType.any,
-                          allowMultiple: true,
-                        );
-                        if (result != null) {
-                          List<File> pickedFiles =
-                              result.paths.map((path) => File(path!)).toList();
-                          int index = filesBox.keys.length + 1;
-                          for (File file in pickedFiles) {
-                            String originalPath = file.path;
-                            String fileName;
-                            do {
-                              fileName = 'hideme${index}.jpg';
-                              index++;
-                            } while (filesBox
-                                .containsKey(fileName)); // Ensure unique key
-                            FileModel fileModel = FileModel(
-                              originalPath: originalPath,
-                              anonymizedName: fileName,
-                            );
-                            filesBox.put(fileName, fileModel);
-                            Fluttertoast.showToast(
-                              msg: "Files uploaded successfully",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.black,
-                              textColor: Colors.white,
-                              fontSize: 16.0,
-                            ); // Store FileModel instance
-                          }
-                          // for (File file in pickedFiles) {
-                          //   String originalPath = file.path;
-                          //   String fileName =
-                          //       'hideme${index + 1}.jpg'; // Anonymized name
-                          //   FileModel fileModel = FileModel(
-                          //     originalPath: originalPath,
-                          //     anonymizedName: fileName,
-                          //   );
-                          //   filesBox.put(fileName,
-                          //       fileModel); // Store FileModel instance
-                          //   index++;
-                          // }
-                          setState(() {
-                            uploadedFiles = filesBox.values
-                                .map((model) => model.anonymizedName)
+              ),
+            ],
+          ),
+        ),
+        automaticallyImplyLeading: false,
+      ),
+      body: FadeInLeft(
+        child: Container(
+          margin: EdgeInsets.symmetric(horizontal: 5.w, vertical: 10.h),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                child: Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.black,
+                  ),
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () async {
+                          FilePickerResult? result =
+                              await FilePicker.platform.pickFiles(
+                            type: FileType.any,
+                            allowMultiple: true,
+                          );
+                          if (result != null) {
+                            List<File> pickedFiles = result.paths
+                                .map((path) => File(path!))
                                 .toList();
-                          });
-                        }
-                      },
-                      child: Container(
-                        height: 7.h,
-                        width: 40.w,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.white,
-                        ),
-                        child: const Center(
-                          child: Text(
-                            "Browse the Files",
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                            maxLines: 1,
-                            overflow: TextOverflow.visible,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // ElevatedButton(
-                    //   onPressed: () async {
-                    //     FilePickerResult? result =
-                    //         await FilePicker.platform.pickFiles(
-                    //       type: FileType.any,
-                    //       allowMultiple: true,
-                    //     );
-                    //     if (result != null) {
-                    //       List<File> pickedFiles =
-                    //           result.paths.map((path) => File(path!)).toList();
-                    //       int index = filesBox.keys.length + 1;
-                    //       for (File file in pickedFiles) {
-                    //         String originalPath = file.path;
-                    //         String fileName;
-                    //         do {
-                    //           fileName = 'hideme${index}.jpg';
-                    //           index++;
-                    //         } while (filesBox
-                    //             .containsKey(fileName)); // Ensure unique key
-                    //         FileModel fileModel = FileModel(
-                    //           originalPath: originalPath,
-                    //           anonymizedName: fileName,
-                    //         );
-                    //         filesBox.put(fileName,
-                    //             fileModel); // Store FileModel instance
-                    //       }
-                    //       // for (File file in pickedFiles) {
-                    //       //   String originalPath = file.path;
-                    //       //   String fileName =
-                    //       //       'hideme${index + 1}.jpg'; // Anonymized name
-                    //       //   FileModel fileModel = FileModel(
-                    //       //     originalPath: originalPath,
-                    //       //     anonymizedName: fileName,
-                    //       //   );
-                    //       //   filesBox.put(fileName,
-                    //       //       fileModel); // Store FileModel instance
-                    //       //   index++;
-                    //       // }
-                    //       setState(() {
-                    //         uploadedFiles = filesBox.values
-                    //             .map((model) => model.anonymizedName)
-                    //             .toList();
-                    //       });
-                    //     }
-                    //   },
-                    //   child: const Text("Browse the Files"),
-                    // ),
-
-                    SizedBox(height: 2.h),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => HiddenFilesScreen(
-                              hiddenFiles: uploadedFiles,
-                              filesBox: filesBox,
+                            int index = filesBox.keys.length + 1;
+                            for (File file in pickedFiles) {
+                              String originalPath = file.path;
+                              String fileName;
+                              do {
+                                fileName = 'hideme$index.jpg';
+                                index++;
+                              } while (filesBox
+                                  .containsKey(fileName)); // Ensure unique key
+                              FileModel fileModel = FileModel(
+                                originalPath: originalPath,
+                                anonymizedName: fileName,
+                              );
+                              filesBox.put(fileName, fileModel);
+                              Fluttertoast.showToast(
+                                msg: "Files uploaded successfully",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.black,
+                                textColor: Colors.white,
+                                fontSize: 16.0,
+                              ); // Store FileModel instance
+                            }
+                            // for (File file in pickedFiles) {
+                            //   String originalPath = file.path;
+                            //   String fileName =
+                            //       'hideme${index + 1}.jpg'; // Anonymized name
+                            //   FileModel fileModel = FileModel(
+                            //     originalPath: originalPath,
+                            //     anonymizedName: fileName,
+                            //   );
+                            //   filesBox.put(fileName,
+                            //       fileModel); // Store FileModel instance
+                            //   index++;
+                            // }
+                            setState(() {
+                              uploadedFiles = filesBox.values
+                                  .map((model) => model.anonymizedName)
+                                  .toList();
+                            });
+                          }
+                        },
+                        child: FadeInLeft(
+                          child: Container(
+                            height: 7.h,
+                            width: 40.w,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
+                            ),
+                            child: const Center(
+                              child: Text(
+                                "Browse the Files",
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                                maxLines: 1,
+                                overflow: TextOverflow.visible,
+                              ),
                             ),
                           ),
-                        );
-                      },
-                      child: Container(
-                        height: 7.h,
-                        width: 40.w,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.white,
                         ),
-                        child: const Center(
-                          child: Text(
-                            "View Hidden Files",
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                            maxLines: 1,
-                            overflow: TextOverflow.visible,
+                      ),
+                      SizedBox(height: 2.h),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HiddenFilesScreen(
+                                hiddenFiles: uploadedFiles,
+                                filesBox: filesBox,
+                              ),
+                            ),
+                          );
+                        },
+                        child: FadeInLeft(
+                          child: Container(
+                            height: 7.h,
+                            width: 40.w,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
+                            ),
+                            child: const Center(
+                              child: Text(
+                                "View Hidden Files",
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                                maxLines: 1,
+                                overflow: TextOverflow.visible,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       ),
     );

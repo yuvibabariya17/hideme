@@ -1,6 +1,10 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/get_navigation.dart';
+import 'package:hideme/Constant/color_const.dart';
 import 'package:hideme/Models/FileModel.dart';
 import 'package:hideme/OriginalImageScreen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -33,9 +37,9 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
   Future<void> deleteFileFromDatabase(String fileName) async {
     try {
       if (!_hiddenFiles.contains(fileName)) {
-        return; // File not found in list
+        return;
       }
-      // Remove from Hive database
+      // Remove from Hive database  
       await widget.filesBox!.delete(fileName);
 
       // Update local list immediately
@@ -43,7 +47,6 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
         _hiddenFiles.remove(fileName);
       });
 
-      // Show toast message
       Fluttertoast.showToast(
         msg: "File deleted successfully",
         toastLength: Toast.LENGTH_SHORT,
@@ -57,22 +60,29 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
       print('Error deleting file: $e');
     }
   }
-  // Future<void> deleteFileFromDatabase(String fileName) async {
-  //   try {
-  //     await widget.filesBox!.delete(fileName); // Remove from Hive database
-  //     setState(() {
-  //       _hiddenFiles.remove(fileName); // Remove from local list
-  //     });
-  //   } catch (e) {
-  //     print('Error deleting file: $e');
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Hidden Files"),
+        centerTitle: true,
+        leading: GestureDetector(
+            onTap: () {
+              Get.back();
+            },
+            child: const Icon(
+              Icons.arrow_back_ios_new,
+              color: white,
+            )),
+        title: Text(
+          "Hidden Files",
+          style: TextStyle(
+            color: white,
+            fontSize: 15.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: black,
       ),
       body: Container(
         margin: EdgeInsets.only(left: 7.w, right: 7.w, top: 3.h),
@@ -91,13 +101,15 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
                     key: Key(fileName),
                     direction: DismissDirection.endToStart,
                     confirmDismiss: (direction) async {
-                      // Show confirmation dialog
                       return await showDialog(
                         context: context,
                         builder: (BuildContext context) {
                           return CupertinoAlertDialog(
                             title: const Text("Confirm"),
-                            content: Text("Delete $fileName?"),
+                            content: Text(
+                              "Delete $fileName?",
+                              style: const TextStyle(color: black),
+                            ),
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () =>
@@ -107,7 +119,8 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
                               TextButton(
                                 onPressed: () =>
                                     Navigator.of(context).pop(true),
-                                child: const Text("Delete"),
+                                child: const Text("Delete",
+                                    style: TextStyle(color: black)),
                               ),
                             ],
                           );
@@ -116,14 +129,6 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
                     },
                     onDismissed: (direction) {
                       deleteFileFromDatabase(fileName);
-                      // Fluttertoast.showToast(
-                      //   msg: "Files Deleted successfully",
-                      //   toastLength: Toast.LENGTH_SHORT,
-                      //   gravity: ToastGravity.BOTTOM,
-                      //   backgroundColor: Colors.black,
-                      //   textColor: Colors.white,
-                      //   fontSize: 16.0,
-                      // );
                     },
                     background: Container(
                       padding: const EdgeInsets.all(20),
@@ -148,21 +153,21 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
                         );
                       },
                       child: Center(
-                        child: Container(
-                          height: 6.5.h,
-                          width: SizerUtil.width / 2,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.black,
-                          ),
-                          margin: EdgeInsets.only(
-                              left: 7.w, right: 7.w, top: 1.h, bottom: 1.h),
-                          // padding: EdgeInsets.only(
-                          //     left: 5.w, right: 5.w, top: 2.h, bottom: 2.h),
-                          child: Center(
-                            child: Text(
-                              fileName,
-                              style: const TextStyle(color: Colors.white),
+                        child: FadeInLeft(
+                          child: Container(
+                            height: 6.5.h,
+                            width: SizerUtil.width / 2,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.black,
+                            ),
+                            margin: EdgeInsets.only(
+                                left: 7.w, right: 7.w, top: 1.h, bottom: 1.h),
+                            child: Center(
+                              child: Text(
+                                fileName,
+                                style: const TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                         ),

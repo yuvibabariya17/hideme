@@ -1,17 +1,37 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/get_navigation.dart';
+import 'package:hideme/Constant/color_const.dart';
+import 'package:sizer/sizer.dart';
 
 class OriginalImageScreen extends StatelessWidget {
   final String filePath;
 
-  const OriginalImageScreen({Key? key, required this.filePath})
-      : super(key: key);
+  const OriginalImageScreen({super.key, required this.filePath});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Original Image"),
+        centerTitle: true,
+        leading: GestureDetector(
+            onTap: () {
+              Get.back();
+            },
+            child: const Icon(
+              Icons.arrow_back_ios_new,
+              color: white,
+            )),
+        title: Text(
+          "Original Files",
+          style: TextStyle(
+            color: white,
+            fontSize: 15.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: black,
       ),
       body: Center(
         child: FutureBuilder<File?>(
