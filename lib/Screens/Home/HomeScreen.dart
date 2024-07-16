@@ -6,6 +6,8 @@ import 'package:hideme/Constant/color_const.dart';
 import 'package:hideme/HiddenFilesScreen.dart';
 import 'package:hideme/Models/FileModel.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sizer/sizer.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -19,7 +21,7 @@ class Homescreen extends StatefulWidget {
 }
 
 class _HomescreenState extends State<Homescreen> {
-  // late Box<Map<String, String>> filesBox;  
+  // late Box<Map<String, String>> filesBox;
   late Box<FileModel> filesBox;
   List<String> uploadedFiles = [];
 
@@ -27,6 +29,7 @@ class _HomescreenState extends State<Homescreen> {
   void initState() {
     super.initState();
     openBox();
+    //requestPermissionAndOpenBox();
   }
 
   @override
@@ -53,8 +56,51 @@ class _HomescreenState extends State<Homescreen> {
     }
   }
 
+  Future<void> requestPermissionAndOpenBox() async {
+    // Request permissions if not already granted
+    var status = await Permission.storage.request();
+    if (!status.isGranted) {
+      Fluttertoast.showToast(
+        msg: "Permission denied to access storage",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    } else {
+      // Permission is granted, open the Hive box
+      await openBox();
+    }
+  }
+
+  Future<void> saveFilesToFolder(List<File> pickedFiles) async {
+    Directory? directory = await getExternalStorageDirectory();
+    String folderName = "HideMeFiles";
+    String folderPath = '${directory!.path}/$folderName';
+    Directory(folderPath).createSync(recursive: true);
+
+    for (File file in pickedFiles) {
+      String originalPath = file.path;
+      String fileName = originalPath.split('/').last;
+      String filePath = '$folderPath/$fileName';
+
+      await file.copy(filePath);
+
+        print("File saved to: $filePath");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!filesBox.isOpen) {
+      requestPermissionAndOpenBox();
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: black,
@@ -118,9 +164,11 @@ class _HomescreenState extends State<Homescreen> {
                             int index = filesBox.keys.length + 1;
                             for (File file in pickedFiles) {
                               String originalPath = file.path;
+                              String extension = originalPath.split('.').last;
                               String fileName;
                               do {
-                                fileName = 'hideme$index.jpg';
+                                fileName = 'hideme$index.$extension.hideme';
+                                // fileName = 'hideme$index.jpg.hideme';
                                 index++;
                               } while (filesBox
                                   .containsKey(fileName)); // Ensure unique key
@@ -138,23 +186,13 @@ class _HomescreenState extends State<Homescreen> {
                                 fontSize: 16.0,
                               ); // Store FileModel instance
                             }
-                            // for (File file in pickedFiles) {
-                            //   String originalPath = file.path;
-                            //   String fileName =
-                            //       'hideme${index + 1}.jpg'; // Anonymized name
-                            //   FileModel fileModel = FileModel(
-                            //     originalPath: originalPath,
-                            //     anonymizedName: fileName,
-                            //   );
-                            //   filesBox.put(fileName,
-                            //       fileModel); // Store FileModel instance
-                            //   index++;
-                            // }
+
                             setState(() {
                               uploadedFiles = filesBox.values
                                   .map((model) => model.anonymizedName)
                                   .toList();
                             });
+                            await saveFilesToFolder(pickedFiles);
                           }
                         },
                         child: FadeInLeft(

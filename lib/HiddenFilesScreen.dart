@@ -39,7 +39,7 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
       if (!_hiddenFiles.contains(fileName)) {
         return;
       }
-      // Remove from Hive database  
+      // Remove from Hive database
       await widget.filesBox!.delete(fileName);
 
       // Update local list immediately
@@ -114,7 +114,8 @@ class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
                               TextButton(
                                 onPressed: () =>
                                     Navigator.of(context).pop(false),
-                                child: const Text("Cancel"),
+                                child: const Text("Cancel",
+                                    style: TextStyle(color: black)),
                               ),
                               TextButton(
                                 onPressed: () =>

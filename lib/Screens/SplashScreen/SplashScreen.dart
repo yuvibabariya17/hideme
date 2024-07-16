@@ -32,17 +32,8 @@ class _SplashscreenState extends State<Splashscreen> {
 
     if (isPinSet) {
       Get.off(const PinEntryScreen());
-
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => PinEntryScreen()),
-      // );
     } else {
       Get.off(const PinSetupScreen());
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => PinSetupScreen()),
-      // );
     }
   }
 
