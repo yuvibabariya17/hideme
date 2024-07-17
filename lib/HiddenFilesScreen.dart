@@ -5,19 +5,17 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:hideme/Constant/color_const.dart';
+import 'package:hideme/Constant/string_const.dart';
 import 'package:hideme/Models/FileModel.dart';
 import 'package:hideme/OriginalImageScreen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sizer/sizer.dart';
 
 class HiddenFilesScreen extends StatefulWidget {
-  final List<String> hiddenFiles;
-  //final Box<Map<String, String>> filesBox;
-  final Box<FileModel>? filesBox;
+  Box<FileModel>? filesBox;
 
-  const HiddenFilesScreen({
+  HiddenFilesScreen({
     super.key,
-    required this.hiddenFiles,
     required this.filesBox,
   });
 
@@ -26,12 +24,26 @@ class HiddenFilesScreen extends StatefulWidget {
 }
 
 class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
-  late List<String> _hiddenFiles;
+  List<String> _hiddenFiles = [];
 
   @override
   void initState() {
     super.initState();
-    _hiddenFiles = List.from(widget.hiddenFiles);
+    openBox();
+  }
+
+  Future<void> openBox() async {
+    if (widget.filesBox != null) {
+      widget.filesBox = await Hive.openBox<FileModel>(Strings.kFilesBox);
+      if (widget.filesBox!.isOpen) {
+        List<FileModel> fileModels = widget.filesBox!.values.toList();
+        List<String> uploadedFileNames =
+            fileModels.map((model) => model.anonymizedName).toList();
+        setState(() {
+          _hiddenFiles = uploadedFileNames;
+        });
+      }
+    }
   }
 
   Future<void> deleteFileFromDatabase(String fileName) async {

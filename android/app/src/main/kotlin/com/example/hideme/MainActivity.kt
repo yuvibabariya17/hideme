@@ -1,4 +1,4 @@
-package com.example.hideme
+package com.example.hideme;
 
 import io.flutter.embedding.android.FlutterActivity
 

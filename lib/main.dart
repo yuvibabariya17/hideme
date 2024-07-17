@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:hideme/Constant/string_const.dart';
 import 'package:hideme/Models/FileModel.dart';
 import 'package:hideme/Screens/SplashScreen/SplashScreen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -10,7 +11,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(TodoAdapter());
-  await Hive.openBox<FileModel>('files');
+  await Hive.openBox<FileModel>(Strings.kFilesBox);
   runApp(const MyApp());
 }
 

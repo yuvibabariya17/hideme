@@ -7,4 +7,5 @@ class Strings {
   static const String filldetails = "Fill the Details";
   static const String name = "Enter Name";
   static const String contact = "Enter Contact";
+  static const String kFilesBox = 'files';
 }

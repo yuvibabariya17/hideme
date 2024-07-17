@@ -3,15 +3,14 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hideme/Constant/color_const.dart';
+import 'package:hideme/Constant/string_const.dart';
 import 'package:hideme/HiddenFilesScreen.dart';
 import 'package:hideme/Models/FileModel.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sizer/sizer.dart';
 import 'package:file_picker/file_picker.dart';
-
-const String kFilesBox = 'files';
+import 'package:path/path.dart' as path;
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -23,13 +22,50 @@ class Homescreen extends StatefulWidget {
 class _HomescreenState extends State<Homescreen> {
   // late Box<Map<String, String>> filesBox;
   late Box<FileModel> filesBox;
-  List<String> uploadedFiles = [];
+
+  late Directory _appDirectory;
+  var _permissionGranted = false;
 
   @override
   void initState() {
     super.initState();
     openBox();
-    //requestPermissionAndOpenBox();
+    _requestPermissions();
+  }
+
+  Future<void> _requestPermissions() async {
+    var status = await Permission.manageExternalStorage.status;
+    if (!status.isGranted) {
+      if (await Permission.manageExternalStorage.request().isGranted) {
+        setState(() {
+          _permissionGranted = true;
+        });
+        _getAppDirectory();
+      } else {
+        print('Permission not granted');
+      }
+    } else {
+      setState(() {
+        _permissionGranted = true;
+      });
+      _getAppDirectory();
+    }
+    return;
+  }
+
+  Future<void> _getAppDirectory() async {
+    // Get the external storage directory
+    Directory? externalDir = Directory('/storage/emulated/0');
+    print('App directory path: ${externalDir.path}');
+
+    // Create the app directory if it doesn't exist
+    _appDirectory = Directory('${externalDir.path}/HideMe');
+    if (!(await _appDirectory.exists())) {
+      await _appDirectory.create();
+      print('App directory created at: ${_appDirectory.path}');
+    } else {
+      print('App directory already exists at: ${_appDirectory.path}');
+    }
   }
 
   @override
@@ -41,19 +77,15 @@ class _HomescreenState extends State<Homescreen> {
     super.dispose();
   }
 
+  Future<void> requestPermissions() async {
+    await [
+      Permission.storage,
+    ].request();
+  }
+
   Future<void> openBox() async {
     await Hive.initFlutter();
-    filesBox = await Hive.openBox<FileModel>(kFilesBox);
-    // filesBox = await Hive.openBox<Map<String, String>>(kFilesBox);
-    if (filesBox.isOpen) {
-      // Assuming 'filesBox' is a Box<FileModel>
-      List<FileModel> fileModels = filesBox.values.toList();
-      List<String> uploadedFileNames =
-          fileModels.map((model) => model.anonymizedName).toList();
-      setState(() {
-        uploadedFiles = uploadedFileNames;
-      });
-    }
+    filesBox = await Hive.openBox<FileModel>(Strings.kFilesBox);
   }
 
   Future<void> requestPermissionAndOpenBox() async {
@@ -74,33 +106,60 @@ class _HomescreenState extends State<Homescreen> {
     }
   }
 
-  Future<void> saveFilesToFolder(List<File> pickedFiles) async {
-    Directory? directory = await getExternalStorageDirectory();
-    String folderName = "HideMeFiles";
-    String folderPath = '${directory!.path}/$folderName';
-    Directory(folderPath).createSync(recursive: true);
+  Future<void> _pickFiles() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      allowMultiple: true,
+    );
 
+    if (result != null) {
+      List<File> pickedFiles = result.paths.map((path) => File(path!)).toList();
+      await _saveFilesToFolder(pickedFiles);
+    }
+  }
+
+  Future<void> _saveFilesToFolder(List<File> pickedFiles) async {
     for (File file in pickedFiles) {
       String originalPath = file.path;
-      String fileName = originalPath.split('/').last;
-      String filePath = '$folderPath/$fileName';
+      String extension = path.extension(originalPath);
+      String fileName;
+      int index = 1;
+      do {
+        fileName = 'hideme$index$extension.hideme';
+        index++;
+      } while (await File('${_appDirectory.path}/$fileName').exists());
 
-      await file.copy(filePath);
+      String newPath = path.join(_appDirectory.path, fileName);
+      await file.copy(newPath);
 
-        print("File saved to: $filePath");
+      FileModel fileModel = FileModel(
+        originalPath: originalPath,
+        anonymizedName: fileName,
+      );
+
+      await filesBox.put(fileName, fileModel);
     }
+
+    Fluttertoast.showToast(
+      msg: "Files uploaded successfully",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!filesBox.isOpen) {
-      requestPermissionAndOpenBox();
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
+    // if (!filesBox.isOpen) {
+    //   requestPermissionAndOpenBox();
+    //   return const Scaffold(
+    //     body: Center(
+    //       child: CircularProgressIndicator(),
+    //     ),
+    //   );
+    // }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: black,
@@ -152,48 +211,7 @@ class _HomescreenState extends State<Homescreen> {
                     children: [
                       GestureDetector(
                         onTap: () async {
-                          FilePickerResult? result =
-                              await FilePicker.platform.pickFiles(
-                            type: FileType.any,
-                            allowMultiple: true,
-                          );
-                          if (result != null) {
-                            List<File> pickedFiles = result.paths
-                                .map((path) => File(path!))
-                                .toList();
-                            int index = filesBox.keys.length + 1;
-                            for (File file in pickedFiles) {
-                              String originalPath = file.path;
-                              String extension = originalPath.split('.').last;
-                              String fileName;
-                              do {
-                                fileName = 'hideme$index.$extension.hideme';
-                                // fileName = 'hideme$index.jpg.hideme';
-                                index++;
-                              } while (filesBox
-                                  .containsKey(fileName)); // Ensure unique key
-                              FileModel fileModel = FileModel(
-                                originalPath: originalPath,
-                                anonymizedName: fileName,
-                              );
-                              filesBox.put(fileName, fileModel);
-                              Fluttertoast.showToast(
-                                msg: "Files uploaded successfully",
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                backgroundColor: Colors.black,
-                                textColor: Colors.white,
-                                fontSize: 16.0,
-                              ); // Store FileModel instance
-                            }
-
-                            setState(() {
-                              uploadedFiles = filesBox.values
-                                  .map((model) => model.anonymizedName)
-                                  .toList();
-                            });
-                            await saveFilesToFolder(pickedFiles);
-                          }
+                          _pickFiles();
                         },
                         child: FadeInLeft(
                           child: Container(
@@ -221,7 +239,6 @@ class _HomescreenState extends State<Homescreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => HiddenFilesScreen(
-                                hiddenFiles: uploadedFiles,
                                 filesBox: filesBox,
                               ),
                             ),
