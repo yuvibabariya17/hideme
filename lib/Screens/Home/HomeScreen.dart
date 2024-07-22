@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hideme/Constant/color_const.dart';
 import 'package:hideme/Constant/string_const.dart';
 import 'package:hideme/Models/FileModel.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sizer/sizer.dart';
 import 'package:file_picker/file_picker.dart';
@@ -68,6 +70,15 @@ class _HomescreenState extends State<Homescreen> {
     }
   }
 
+  Future<void> _openDirectory(String path) async {
+    const platform = MethodChannel('com.yourcompany.openfile');
+    try {
+      await platform.invokeMethod('openDirectory', {'path': path});
+    } on PlatformException catch (e) {
+      print("Failed to open directory: '${e.message}'.");
+    }
+  }
+
   @override
   void dispose() {
     if (filesBox.isOpen) {
@@ -115,15 +126,21 @@ class _HomescreenState extends State<Homescreen> {
     if (result != null) {
       List<File> pickedFiles = result.paths.map((path) => File(path!)).toList();
       await _saveFilesToFolder(pickedFiles);
+    } else {
+      Fluttertoast.showToast(
+        msg: "No files selected",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 
   Future<void> _saveFilesToFolder(List<File> pickedFiles) async {
     for (File file in pickedFiles) {
       String originalPath = file.path;
-
-
-      
       // To add Original Path Show
       // String extension = path.extension(originalPath);
       String fileName;
@@ -153,6 +170,76 @@ class _HomescreenState extends State<Homescreen> {
       textColor: Colors.white,
       fontSize: 16.0,
     );
+  }
+
+  Future<void> pickAndMoveFiles() async {
+    // Check and request storage permission
+    if (!await Permission.storage.isGranted) {
+      var status = await Permission.storage.request();
+      if (!status.isGranted) {
+        Fluttertoast.showToast(
+          msg: "Storage permission denied",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.black,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+        return;
+      }
+    }
+
+    // Proceed with file picking and moving
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      allowMultiple: true,
+    );
+
+    if (result != null) {
+      List<File> pickedFiles = result.paths.map((path) => File(path!)).toList();
+      final Directory? appDir = await getExternalStorageDirectory();
+      final Directory hideMeFolder = Directory('${appDir?.path}/HideMe');
+
+      if (!await hideMeFolder.exists()) {
+        await hideMeFolder.create(recursive: true);
+        File('${hideMeFolder.path}/.nomedia')
+            .createSync(); // Create .nomedia file
+      }
+
+      for (File file in pickedFiles) {
+        try {
+          String originalPath = file.path;
+          String newPath =
+              '${hideMeFolder.path}/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
+          final File newFile = await file.copy(newPath);
+
+          // Optionally, delete the original file
+          await file.delete();
+
+          print('File moved to: ${newFile.path}');
+        } catch (e) {
+          print('Failed to move file ${file.path}: $e');
+        }
+      }
+
+      Fluttertoast.showToast(
+        msg: "Files moved successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    } else {
+      Fluttertoast.showToast(
+        msg: "No files selected",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
   }
 
   Future<void> _openAppDirectory() async {
@@ -231,7 +318,7 @@ class _HomescreenState extends State<Homescreen> {
                     children: [
                       GestureDetector(
                         onTap: () async {
-                          _pickFiles();
+                          await pickAndMoveFiles();
                         },
                         child: FadeInLeft(
                           child: Container(
@@ -256,36 +343,38 @@ class _HomescreenState extends State<Homescreen> {
                       GestureDetector(
                         // OPEN FILE EXPLORER
 
-                        // onTap: () async {
-                        //   // Open the HideMe folder
-                        //   if (await _appDirectory.exists()) {
-                        //     OpenFile.open(_appDirectory.path);
-                        //   } else {
-                        //     Fluttertoast.showToast(
-                        //       msg: "HideMe folder does not exist",
-                        //       toastLength: Toast.LENGTH_SHORT,
-                        //       gravity: ToastGravity.BOTTOM,
-                        //       backgroundColor: Colors.black,
-                        //       textColor: Colors.white,
-                        //       fontSize: 16.0,
-                        //     );
-                        //   }
-                        // },
+                        onTap: () async {
+                          await _openDirectory(_appDirectory.path);
+                          // Open the HideMe folder
+                          // if (await _appDirectory.exists()) {
+                          //   OpenFile.open(_appDirectory.parent.path);
+                          // } else {
+                          //   Fluttertoast.showToast(
+                          //     msg: "HideMe folder does not exist",
+                          //     toastLength: Toast.LENGTH_SHORT,
+                          //     gravity: ToastGravity.BOTTOM,
+                          //     backgroundColor: Colors.black,
+                          //     textColor: Colors.white,
+                          //     fontSize: 16.0,
+                          //   );
+                          // }
+                        },
 
                         //OPEN HIDDENFILES SCREEN
 
-                        onTap: () {
-                          _openAppDirectory();
+                        // onTap: () {
+                        //   // _openAppDirectory();
 
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => HiddenFilesScreen(
-                          //       filesBox: filesBox,
-                          //     ),
-                          //   ),
-                          // );
-                        },
+                        //   Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(
+                        //       builder: (context) => HiddenFilesScreen(
+                        //         filesBox: filesBox,
+
+                        //       ),
+                        //     ),
+                        //   );
+                        // },
                         child: FadeInLeft(
                           child: Container(
                             height: 7.h,
