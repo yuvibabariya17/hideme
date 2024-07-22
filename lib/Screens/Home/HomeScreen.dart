@@ -11,6 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sizer/sizer.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
+import 'package:open_file/open_file.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -121,11 +122,13 @@ class _HomescreenState extends State<Homescreen> {
   Future<void> _saveFilesToFolder(List<File> pickedFiles) async {
     for (File file in pickedFiles) {
       String originalPath = file.path;
-      String extension = path.extension(originalPath);
+      // To add Original Path Show
+      // String extension = path.extension(originalPath);
       String fileName;
       int index = 1;
       do {
-        fileName = 'hideme$index$extension.hideme';
+        // fileName = 'hideme$index$extension.hideme';
+        fileName = 'File$index.hideme';
         index++;
       } while (await File('${_appDirectory.path}/$fileName').exists());
 
@@ -148,6 +151,21 @@ class _HomescreenState extends State<Homescreen> {
       textColor: Colors.white,
       fontSize: 16.0,
     );
+  }
+
+  Future<void> _openAppDirectory() async {
+    if (await _appDirectory.exists()) {
+      OpenFile.open(_appDirectory.path);
+    } else {
+      Fluttertoast.showToast(
+        msg: "HideMe folder does not exist",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
   }
 
   @override
@@ -234,15 +252,37 @@ class _HomescreenState extends State<Homescreen> {
                       ),
                       SizedBox(height: 2.h),
                       GestureDetector(
+                        // OPEN FILE EXPLORER
+
+                        // onTap: () async {
+                        //   // Open the HideMe folder
+                        //   if (await _appDirectory.exists()) {
+                        //     OpenFile.open(_appDirectory.path);
+                        //   } else {
+                        //     Fluttertoast.showToast(
+                        //       msg: "HideMe folder does not exist",
+                        //       toastLength: Toast.LENGTH_SHORT,
+                        //       gravity: ToastGravity.BOTTOM,
+                        //       backgroundColor: Colors.black,
+                        //       textColor: Colors.white,
+                        //       fontSize: 16.0,
+                        //     );
+                        //   }
+                        // },
+
+                        //OPEN HIDDENFILES SCREEN
+
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HiddenFilesScreen(
-                                filesBox: filesBox,
-                              ),
-                            ),
-                          );
+                          _openAppDirectory();
+
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => HiddenFilesScreen(
+                          //       filesBox: filesBox,
+                          //     ),
+                          //   ),
+                          // );
                         },
                         child: FadeInLeft(
                           child: Container(

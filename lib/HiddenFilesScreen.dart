@@ -26,6 +26,7 @@ class HiddenFilesScreen extends StatefulWidget {
 class _HiddenFilesScreenState extends State<HiddenFilesScreen> {
   List<String> _hiddenFiles = [];
 
+
   @override
   void initState() {
     super.initState();
